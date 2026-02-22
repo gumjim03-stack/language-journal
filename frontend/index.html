@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Language Journal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="tabs">
+            <button class="tab active" data-tab="spanish">Español</button>
+            <button class="tab" data-tab="japanese">Japonés</button>
+        </div>
+        <button class="call-button" id="playGreeting">📞 Saludo</button>
+    </div>
+
+    <!-- Contenido de tabs -->
+    <div id="spanish" class="tab-content active">
+        <div class="editor-container" id="spanish-container">
+            <!-- Aquí se agregan cuadros de texto -->
+        </div>
+        <button class="add-cube-btn" data-lang="spanish">+ Agregar cuadro</button>
+    </div>
+
+    <div id="japanese" class="tab-content">
+        <div class="editor-container" id="japanese-container">
+            <!-- Aquí se agregan cuadros de texto -->
+        </div>
+        <button class="add-cube-btn" data-lang="japanese">+ Agregar cuadro</button>
+    </div>
+
+</div>
+
+<!-- Tooltip para palabras -->
+<div id="tooltip" class="hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
