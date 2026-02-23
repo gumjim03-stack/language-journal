@@ -79,7 +79,7 @@ editor.addEventListener("mouseup", () => {
     pauseBtn.style.marginLeft = "5px";
 
     if (audio) {
-        const audioPlayer = new Audio(`/audios/${audio}`);
+        const audioPlayer = new Audio(audios);
         playBtn.addEventListener("click", () => audioPlayer.play());
         pauseBtn.addEventListener("click", () => audioPlayer.pause());
     }
@@ -249,7 +249,7 @@ function showWordModal(wordObj) {
 
     if (wordObj.audio) {
         const audioPlayer = document.createElement("audio");
-        audioPlayer.src = `/audios/${wordObj.audio}`;
+        audioPlayer.src = wordObj.audio;
         audioPlayer.controls = true;
         audioPlayer.classList.add("modal-audio");
         modal.appendChild(audioPlayer);
@@ -481,7 +481,7 @@ document.addEventListener("mouseup", (e) => {
     if (data.audio) {
         const btn = document.getElementById("playWordAudio");
         btn.addEventListener("click", () => {
-            const audio = new Audio(`/audios/${data.audio}`);
+            const audio = new Audio(data.audio);
             audio.play();
         });
     }
