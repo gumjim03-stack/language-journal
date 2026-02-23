@@ -10,6 +10,8 @@ const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const Text = require("./models/Text");
 
+let greeting = {};
+
 // 2️⃣ CONFIGURACIÓN DE CLOUDINARY
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -193,5 +195,35 @@ app.delete('/texts/:id', (req, res) => {
 
     res.json({ success: true });
 });
+
+app.get('/greeting/:lang', (req, res) => {
+  const { lang } = req.params;
+
+  if (!greetings[lang]) {
+    return res.status(404).json({ error: "No greeting found" });
+  }
+
+  res.json({ audio: greetings[lang] });
+});
+
+app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
+  try {
+    const { lang } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No audio uploaded" });
+    }
+
+    greetings[lang] = req.file.path;
+
+    res.json({ success: true, audio: req.file.path });
+
+  } catch (error) {
+    console.error("Error saving greeting:", error);
+    res.status(500).json({ error: "Error saving greeting" });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
