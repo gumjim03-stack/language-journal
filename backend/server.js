@@ -132,42 +132,30 @@ app.post("/texts", uploadTextAudio.single("audio"), async (req, res) => {
 });
 
 // ===== Agregar palabra a un cuadro =====
-app.post('/texts/:id/words', upload.single('audio'), (req, res) => {
-    const { id } = req.params;
+app.post('/texts/:id/words', upload.single('audio'), async (req, res) => {
+  const { id } = req.params;
 
-    let texts = [];
-    if (fs.existsSync(textsFile)) {
-        texts = JSON.parse(fs.readFileSync(textsFile, 'utf-8'));
-    }
+  let audioFileName = null;
+  if (req.file) {
+    audioFileName = req.file.filename;
+  }
 
-    const textIndex = texts.findIndex(t => t.id == id);
-    if (textIndex === -1) {
-        return res.status(404).json({ error: "Cuadro no encontrado" });
-    }
+  const newWord = {
+    text: req.body.word,
+    meaning: req.body.meaning,
+    example: req.body.example,
+    challenge: req.body.challenge,
+    color: req.body.color || "#ffff00",
+    audio: audioFileName
+  };
 
-    let audioFileName = null;
-    if (req.file) {
-        audioFileName = req.file.filename;
-    }
+  await Text.findByIdAndUpdate(
+    id,
+    { $push: { words: newWord } },
+    { new: true }
+  );
 
-    const newWord = {
-        text: req.body.word,
-        meaning: req.body.meaning,
-        example: req.body.example,
-        challenge: req.body.challenge,
-        audio: audioFileName,
-        color: req.body.color || '#ffff00' // 
-    };
-
-    if (!texts[textIndex].words) {
-        texts[textIndex].words = [];
-    }
-
-    texts[textIndex].words.push(newWord);
-
-    fs.writeFileSync(textsFile, JSON.stringify(texts, null, 2));
-
-    res.json({ success: true, word: newWord });
+  res.json({ success: true, word: newWord });
 });
 
 // ===== Eliminar un cuadro =====
