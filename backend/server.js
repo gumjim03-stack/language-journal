@@ -99,22 +99,7 @@ app.get('/greeting/:lang', (req, res) => {
     }
 });
 
-// Textos (cuadros)
-const Text = require("./models/Text");
-
-app.get("/texts", async (req, res) => {
-  const texts = await Text.find();
-  res.json(texts);
-});
-
-const uploadTextAudio = multer({
-    storage: multer.diskStorage({
-        destination: (req, file, cb) => cb(null, 'audios/'),
-        filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-    })
-});
-
-app.post("/texts", uploadTextAudio.single("audio"), async (req, res) => {
+app.post("/texts", upload.single("audio"), async (req, res) => {
   const { id, lang, content } = req.body;
 
   if (!lang) return res.status(400).json({ error: "Falta idioma" });
