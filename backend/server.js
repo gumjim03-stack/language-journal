@@ -33,6 +33,7 @@ app.get('/', (req, res) => {
 });
 
 
+
 // Diccionario de palabras
 const dictFile = 'dictionary.json';
 app.get('/dictionary', (req, res) => {
@@ -89,11 +90,11 @@ app.get('/greeting/:lang', (req, res) => {
 });
 
 // Textos (cuadros)
-const textsFile = 'texts.json';
-app.get('/texts', (req, res) => {
-    if (!fs.existsSync(textsFile)) fs.writeFileSync(textsFile, '[]');
-    const texts = JSON.parse(fs.readFileSync(textsFile, 'utf-8'));
-    res.json(texts);
+const Text = require("./models/Text");
+
+app.get("/texts", async (req, res) => {
+  const texts = await Text.find();
+  res.json(texts);
 });
 
 const uploadTextAudio = multer({
@@ -103,42 +104,31 @@ const uploadTextAudio = multer({
     })
 });
 
-app.post('/texts', uploadTextAudio.single('audio'), (req, res) => {
-    console.log("body:", req.body);
-    console.log("file:", req.file);
+app.post("/texts", uploadTextAudio.single("audio"), async (req, res) => {
+  const { id, lang, content } = req.body;
 
-    const { id, lang, content } = req.body;
+  if (!lang) return res.status(400).json({ error: "Falta idioma" });
 
-    if (!lang) return res.status(400).json({ error: 'Falta idioma' });
+  let audioFile = null;
+  if (req.file) {
+    audioFile = req.file.filename;
+  }
 
-    let texts = [];
-    if (fs.existsSync(textsFile)) {
-        texts = JSON.parse(fs.readFileSync(textsFile, 'utf-8'));
-    }
+  if (id) {
+    await Text.findByIdAndUpdate(id, {
+      content,
+      ...(audioFile && { audio: audioFile })
+    });
+  } else {
+    await Text.create({
+      lang,
+      content,
+      audio: audioFile,
+      words: []
+    });
+  }
 
-    let audioFile = null;
-    if (req.file) {
-        audioFile = req.file.filename;
-    }
-
-    if (id) {
-        const index = texts.findIndex(t => t.id == id);
-        if (index !== -1) {
-            texts[index].content = content;
-            if (audioFile) texts[index].audio = audioFile;
-        }
-    } else {
-        const newId = Date.now();
-        texts.push({
-            id: newId,
-            lang,
-            content: content || "",
-            audio: audioFile
-        });
-    }
-
-    fs.writeFileSync(textsFile, JSON.stringify(texts, null, 2));
-    res.json({ success: true });
+  res.json({ success: true });
 });
 
 // ===== Agregar palabra a un cuadro =====
