@@ -91,38 +91,51 @@ editor.addEventListener("mouseup", () => {
     let mediaRecorder;
     let audioChunks = [];
 
-    recordBtn.addEventListener("click", async () => {
-        if (recordBtn.dataset.recording === "true") {
-            mediaRecorder.stop();
-            recordBtn.dataset.recording = "false";
-            recordBtn.innerText = "🎤 Grabar audio";
-        } else {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
+  recordBtn.addEventListener("click", async () => {
+    if (recordBtn.dataset.recording === "true") {
+        mediaRecorder.stop();
+        recordBtn.dataset.recording = "false";
+        recordBtn.innerText = "🎤 Grabar audio";
+    } else {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
 
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                const formData = new FormData();
-                formData.append("id", id);
-                formData.append("lang", lang);
-                formData.append("content", editor.innerText);
-                formData.append("audio", audioBlob, `grabacion-${Date.now()}.mp3`);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
-                const res = await fetch("/texts", {
-                    method: "POST",
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.success) alert("Your voice has been recorded perfectly");
-            };
+        mediaRecorder.onstop = async () => {
 
-            mediaRecorder.start();
-            recordBtn.dataset.recording = "true";
-            recordBtn.innerText = "⏹ Detener grabación";
-        }
-    });
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            const formData = new FormData();
+            formData.append("id", id);
+            formData.append("lang", lang);
+            formData.append("content", editor.innerText);
+            formData.append("audio", audioBlob, `grabacion-${Date.now()}.webm`);
+
+            const res = await fetch("/texts", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Your voice has been recorded perfectly");
+
+                // 🔥 Cerrar micrófono
+                stream.getTracks().forEach(track => track.stop());
+
+                // 🔥 Recargar cubos para que aparezca botón reproducir
+                loadCubes();
+            }
+        };
+
+        mediaRecorder.start();
+        recordBtn.dataset.recording = "true";
+        recordBtn.innerText = "⏹ Detener grabación";
+    }
+});
 
     // ===== Guardar cuadro =====
     saveBtn.addEventListener("click", async () => {
