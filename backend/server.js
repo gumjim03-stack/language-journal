@@ -82,29 +82,34 @@ app.post('/dictionary', upload.single('audio'), (req, res) => {
 
 // ===== Guardar saludo por idioma =====
 app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
+  try {
     const { lang } = req.params;
 
     if (!req.file) {
-        return res.status(400).json({ error: "No se envió audio" });
+      return res.status(400).json({ error: "No audio uploaded" });
     }
 
-    const greetingPath = path.join(__dirname, 'audios', `greeting-${lang}.webm`);
+    greetings[lang] = req.file.path;
 
-    fs.renameSync(req.file.path, greetingPath);
+    res.json({ success: true, audio: req.file.path });
 
-    res.json({ success: true });
+  } catch (error) {
+    console.error("Error saving greeting:", error);
+    res.status(500).json({ error: "Error saving greeting" });
+  }
 });
 
 // ===== Obtener saludo por idioma =====
-app.get('/greeting/:lang', (req, res) => {
-    const { lang } = req.params;
-    const greetingPath = path.join(__dirname, 'audios', `greeting-${lang}.webm`);
+let greetings = {};
 
-    if (fs.existsSync(greetingPath)) {
-        res.sendFile(greetingPath);
-    } else {
-        res.status(404).json({ error: "No hay saludo grabado" });
-    }
+app.get('/greeting/:lang', (req, res) => {
+  const { lang } = req.params;
+
+  if (!greetings[lang]) {
+    return res.status(404).json({ error: "No greeting found" });
+  }
+
+  res.json({ audio: greetings[lang] });
 });
 
 app.post("/texts", upload.single("audio"), async (req, res) => {
