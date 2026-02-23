@@ -397,7 +397,7 @@ async function loadCubes() {
         const texts = await res.json();
 
         texts.forEach(t => {
-    const cube = createEditorCube(t.lang, t.content, t.id, t.audio, t.words || []);
+    const cube = createEditorCube(t.lang, t.content, String(t._id), t.audio, t.words || []);
     if (t.lang === "spanish") spanishContainer.appendChild(cube);
     else japaneseContainer.appendChild(cube);
 });
@@ -540,12 +540,14 @@ greetingBtn.addEventListener("click", (e) => {
 
         // 4️⃣ Si no hay audio cargado → buscar en servidor
         try {
-            const response = await fetch(`/greeting/${lang}`);
-            if (response.ok) {
-                greetingAudio.src = `/greeting/${lang}?t=${Date.now()}`;
-                greetingAudio.play();
-                return;
-            }
+       const response = await fetch(`/greeting/${lang}`);
+if (response.ok) {
+    greetingAudio.src = `/greeting/${lang}?t=${Date.now()}`;
+    greetingAudio.play();
+    return;
+} else {
+    console.log("No greeting found yet");
+}
         } catch {}
 
         // 5️⃣ Si no existe → grabar
