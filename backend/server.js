@@ -8,6 +8,7 @@ const cors = require("cors");
 
 const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const Text = require("./models/Text");
 
 // 2️⃣ CONFIGURACIÓN DE CLOUDINARY
 cloudinary.config({
