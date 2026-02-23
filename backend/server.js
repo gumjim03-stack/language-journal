@@ -44,6 +44,16 @@ app.use('/audios', express.static(path.join(__dirname, 'audios')));
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+app.get("/texts", async (req, res) => {
+  try {
+    const texts = await Text.find();
+    res.json(texts);
+  } catch (error) {
+    console.error("Error obteniendo textos:", error);
+    res.status(500).json({ error: "Error obteniendo textos" });
+  }
+});
+
 // Para que al abrir la raíz te entregue index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
