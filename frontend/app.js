@@ -79,7 +79,7 @@ editor.addEventListener("mouseup", () => {
     pauseBtn.style.marginLeft = "5px";
 
     if (audio) {
-        const audioPlayer = new Audio(audios);
+        const audioPlayer = new Audio(audio);
         playBtn.addEventListener("click", () => audioPlayer.play());
         pauseBtn.addEventListener("click", () => audioPlayer.pause());
     }
@@ -540,9 +540,10 @@ greetingBtn.addEventListener("click", (e) => {
 
         // 4️⃣ Si no hay audio cargado → buscar en servidor
         try {
-       const response = await fetch(`/greeting/${lang}`);
+const response = await fetch(`/greeting/${lang}`);
 if (response.ok) {
-    greetingAudio.src = `/greeting/${lang}?t=${Date.now()}`;
+    const data = await response.json();
+    greetingAudio.src = data.audio;
     greetingAudio.play();
     return;
 } else {
@@ -568,10 +569,14 @@ if (response.ok) {
             const formData = new FormData();
             formData.append("audio", blob, `greeting-${lang}.webm`);
 
-            await fetch(`/greeting/${lang}`, {
-                method: "POST",
-                body: formData
-            });
+const res = await fetch(`/greeting/${lang}`, {
+    method: "POST",
+    body: formData
+});
+
+const data = await res.json();
+greetingAudio.src = data.audio;
+greetingAudio.play();
 
             greetingBtn.classList.remove("recording", "greeting-recording");
             alert("Siiiiii, thank you for your words 💌");
