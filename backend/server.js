@@ -29,8 +29,6 @@ const upload = multer({ storage });
 // 4️⃣ DESPUÉS YA CREAS APP
 const app = express();
 
-const mongoose = require('mongoose');
-
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB conectado"))
     .catch(err => console.error("Error MongoDB:", err));
