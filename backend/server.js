@@ -1,16 +1,33 @@
-const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const cors = require('cors');
-const path = require('path');
+// 1️⃣ TODOS LOS REQUIRE ARRIBA
+const express = require("express");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// 2️⃣ CONFIGURACIÓN DE CLOUDINARY
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET
+});
+
+// 3️⃣ CREACIÓN DEL STORAGE
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "language-journal-audios",
+    resource_type: "auto"
+  }
+});
+
+const upload = multer({ storage });
+
+// 4️⃣ DESPUÉS YA CREAS APP
 const app = express();
-
-const audioDir = path.join(__dirname, 'audios');
-
-if (!fs.existsSync(audioDir)) {
-  fs.mkdirSync(audioDir);
-}
 
 const mongoose = require('mongoose');
 
@@ -42,12 +59,6 @@ app.get('/dictionary', (req, res) => {
     res.json(dict);
 });
 
-// Subir palabra
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'audios/'),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
 
 app.post('/dictionary', upload.single('audio'), (req, res) => {
     const { word, meaning, example } = req.body;
@@ -56,7 +67,7 @@ app.post('/dictionary', upload.single('audio'), (req, res) => {
     let dict = {};
     if (fs.existsSync(dictFile)) dict = JSON.parse(fs.readFileSync(dictFile, 'utf-8'));
 
-    dict[word.toLowerCase()] = { meaning, example, audio: req.file ? req.file.filename : null };
+    dict[word.toLowerCase()] = { meaning, example, audio: req.file ? req.file.file.path : null };
     fs.writeFileSync(dictFile, JSON.stringify(dict, null, 2));
 
     res.json({ success: true });
