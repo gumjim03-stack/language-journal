@@ -10,8 +10,6 @@ const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const Text = require("./models/Text");
 
-let greeting = {};
-
 // 2️⃣ CONFIGURACIÓN DE CLOUDINARY
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -83,23 +81,6 @@ app.post('/dictionary', upload.single('audio'), (req, res) => {
 });
 
 // ===== Guardar saludo por idioma =====
-app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
-  try {
-    const { lang } = req.params;
-
-    if (!req.file) {
-      return res.status(400).json({ error: "No audio uploaded" });
-    }
-
-    greetings[lang] = req.file.path;
-
-    res.json({ success: true, audio: req.file.path });
-
-  } catch (error) {
-    console.error("Error saving greeting:", error);
-    res.status(500).json({ error: "Error saving greeting" });
-  }
-});
 
 // ===== Obtener saludo por idioma =====
 let greetings = {};
@@ -165,45 +146,15 @@ const newWord = {
 });
 
 // ===== Eliminar un cuadro =====
-app.delete('/texts/:id', (req, res) => {
-    const { id } = req.params;
-
-    let texts = [];
-    if (fs.existsSync(textsFile)) {
-        texts = JSON.parse(fs.readFileSync(textsFile, 'utf-8'));
-    }
-
-    const textIndex = texts.findIndex(t => t.id == id);
-
-    if (textIndex === -1) {
-        return res.status(404).json({ error: "No encontrado" });
-    }
-
-    // Si tiene audio, borramos el archivo físico
-    const audioFile = texts[textIndex].audio;
-    if (audioFile) {
-        const audioPath = path.join(__dirname, 'audios', audioFile);
-        if (fs.existsSync(audioPath)) {
-            fs.unlinkSync(audioPath);
-        }
-    }
-
-    // Eliminamos el cuadro del array
-    texts.splice(textIndex, 1);
-
-    fs.writeFileSync(textsFile, JSON.stringify(texts, null, 2));
-
+// ===== Eliminar un cuadro =====
+app.delete('/texts/:id', async (req, res) => {
+  try {
+    await Text.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-});
-
-app.get('/greeting/:lang', (req, res) => {
-  const { lang } = req.params;
-
-  if (!greetings[lang]) {
-    return res.status(404).json({ error: "No greeting found" });
+  } catch (error) {
+    console.error("Error eliminando texto:", error);
+    res.status(500).json({ error: "Error eliminando texto" });
   }
-
-  res.json({ audio: greetings[lang] });
 });
 
 app.post('/greeting/:lang', upload.single('audio'), (req, res) => {

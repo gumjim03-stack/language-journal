@@ -38,6 +38,8 @@ function createEditorCube(lang, content = "", id = null, audio = null, words = [
     editor.classList.add("editor");
     editor.contentEditable = true;
     editor.innerText = content;
+    editor.innerHTML = editor.innerText;
+
 
 editor.addEventListener("mouseup", () => {
     const selection = window.getSelection();
