@@ -6,6 +6,18 @@ const path = require('path');
 
 const app = express();
 
+const audioDir = path.join(__dirname, 'audios');
+
+if (!fs.existsSync(audioDir)) {
+  fs.mkdirSync(audioDir);
+}
+
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB conectado"))
+    .catch(err => console.error("Error MongoDB:", err));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
