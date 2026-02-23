@@ -39,9 +39,6 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true }));
-
-app.use('/audios', express.static(path.join(__dirname, 'audios')));
-
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.get("/texts", async (req, res) => {
@@ -115,10 +112,10 @@ app.post("/texts", upload.single("audio"), async (req, res) => {
 
   if (!lang) return res.status(400).json({ error: "Falta idioma" });
 
-  let audioFile = null;
-  if (req.file) {
-    audioFile = req.file.filename;
-  }
+ let audioFile = null;
+if (req.file) {
+  audioFile = req.file.path;
+}
 
   if (id) {
     await Text.findByIdAndUpdate(id, {
@@ -141,19 +138,15 @@ app.post("/texts", upload.single("audio"), async (req, res) => {
 app.post('/texts/:id/words', upload.single('audio'), async (req, res) => {
   const { id } = req.params;
 
-  let audioFileName = null;
-  if (req.file) {
-    audioFileName = req.file.filename;
-  }
-
-  const newWord = {
+  let audioFileName = req.file ? req.file.path : null;
+const newWord = {
     text: req.body.word,
     meaning: req.body.meaning,
     example: req.body.example,
     challenge: req.body.challenge,
     color: req.body.color || "#ffff00",
-    audio: audioFileName
-  };
+    audio: req.file ? req.file.path : null
+};
 
   await Text.findByIdAndUpdate(
     id,
