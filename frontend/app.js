@@ -62,13 +62,6 @@ editor.addEventListener("mouseup", () => {
     deleteBtn.innerText = "🗑 Eliminar";
     deleteBtn.style.marginLeft = "5px";
 
-    // ===== Input de audio =====
-    const audioInput = document.createElement("input");
-    audioInput.type = "file";
-    audioInput.accept = "audio/*";
-    audioInput.style.display = "block";
-    audioInput.style.marginTop = "5px";
-
     // ===== Botón reproducir audio =====
     const playBtn = document.createElement("button");
     playBtn.innerText = "▶️ Reproducir";
@@ -145,7 +138,6 @@ editor.addEventListener("mouseup", () => {
         formData.append("id", id || "");
         formData.append("lang", lang);
         formData.append("content", editor.innerText);
-        if (audioInput.files[0]) formData.append("audio", audioInput.files[0]);
 
         const res = await fetch("/texts", {
             method: "POST",
@@ -235,7 +227,6 @@ recordBtn.classList.add("tab");
     wrapper.appendChild(editor);
     wrapper.appendChild(saveBtn);
     wrapper.appendChild(deleteBtn);
-    wrapper.appendChild(audioInput);
     wrapper.appendChild(playBtn);
     wrapper.appendChild(pauseBtn);
     wrapper.appendChild(recordBtn);
