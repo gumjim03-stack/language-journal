@@ -237,6 +237,10 @@ recordBtn.classList.add("tab");
 // ======================================
 function showWordModal(wordObj) {
 
+    // 🔥 eliminar modal previo si existe
+    const existingModal = document.querySelector(".modal");
+    if (existingModal) existingModal.remove();
+
     const overlay = document.createElement("div");
     overlay.classList.add("modal");
 
@@ -397,6 +401,11 @@ function addNewCube(lang, content = "", id = null) {
 // ===== Cargar cuadros desde backend =====
 async function loadCubes() {
     try {
+
+        // 🔥 limpiar contenedores antes de renderizar
+        spanishContainer.innerHTML = "";
+        japaneseContainer.innerHTML = "";
+
         const res = await fetch('/texts');
         const texts = await res.json();
 
