@@ -158,54 +158,83 @@ editor.addEventListener("mouseup", () => {
         }
     });
 
+    function removeExistingHighlights(editor) {
+    const spans = editor.querySelectorAll(".highlight-word");
+    spans.forEach(span => {
+        span.replaceWith(document.createTextNode(span.textContent));
+    });
+}
+
     // ===== Subrayado de palabras guardadas (sin tocar botones) =====
 function highlightWords(editor, words) {
     if (!words || words.length === 0) return;
 
-    const childNodes = Array.from(editor.childNodes);
+    removeExistingHighlights(editor);
 
-    childNodes.forEach(node => {
+    const walker = document.createTreeWalker(
+        editor,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
 
-        if (node.nodeType === Node.TEXT_NODE) {
+    const textNodes = [];
+    while (walker.nextNode()) {
+        textNodes.push(walker.currentNode);
+    }
 
-            let text = node.textContent.normalize("NFC");
+    textNodes.forEach(node => {
+        let currentText = node.nodeValue;
 
-            words.forEach(wordObj => {
+        words.forEach(wordObj => {
+            const word = wordObj.text.normalize("NFC");
+            const safeWord = escapeRegExp(word);
+            const regex = new RegExp(safeWord, "gu");
 
-                const normalizedWord = wordObj.text.normalize("NFC");
-                const safeWord = escapeRegExp(normalizedWord);
-                const regex = new RegExp(safeWord, "gu");
+            if (regex.test(currentText)) {
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
 
-                text = text.replace(regex, match => {
-                    return `<span class="highlight-word" 
-                        contenteditable="false"
-                        data-word='${JSON.stringify(wordObj)}' 
-                        style="background-color:${wordObj.color || '#ffff00'}">
-                        ${match}
-                    </span>`;
+                currentText.replace(regex, (match, offset) => {
+
+                    // texto antes del match
+                    if (offset > lastIndex) {
+                        fragment.appendChild(
+                            document.createTextNode(
+                                currentText.slice(lastIndex, offset)
+                            )
+                        );
+                    }
+
+                    // crear span seguro
+                    const span = document.createElement("span");
+                    span.className = "highlight-word";
+                    span.contentEditable = "false";
+                    span.style.backgroundColor =
+                        wordObj.color || "#ffff00";
+                    span.dataset.word = JSON.stringify(wordObj);
+                    span.textContent = match;
+
+                    span.addEventListener("click", () => {
+                        showWordModal(wordObj);
+                    });
+
+                    fragment.appendChild(span);
+
+                    lastIndex = offset + match.length;
                 });
 
-            });
+                // texto después del último match
+                if (lastIndex < currentText.length) {
+                    fragment.appendChild(
+                        document.createTextNode(
+                            currentText.slice(lastIndex)
+                        )
+                    );
+                }
 
-            const temp = document.createElement("div");
-            temp.innerHTML = text;
-
-            while (temp.firstChild) {
-                node.parentNode.insertBefore(temp.firstChild, node);
+                node.parentNode.replaceChild(fragment, node);
             }
-
-            node.remove();
-
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            highlightWords(node, words);
-        }
-
-    });
-
-    editor.querySelectorAll(".highlight-word").forEach(span => {
-        span.addEventListener("click", () => {
-            const wordObj = JSON.parse(span.dataset.word);
-            showWordModal(wordObj);
         });
     });
 }
