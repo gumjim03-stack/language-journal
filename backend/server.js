@@ -10,6 +10,14 @@ const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const Text = require("./models/Text");
 
+const mongoose = require("mongoose");
+
+const greetingSchema = new mongoose.Schema({
+  lang: { type: String, required: true, unique: true },
+  audio: { type: String, required: true }
+});
+
+const Greeting = mongoose.model("Greeting", greetingSchema);
 // 2️⃣ CONFIGURACIÓN DE CLOUDINARY
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -80,20 +88,7 @@ app.post('/dictionary', upload.single('audio'), (req, res) => {
     res.json({ success: true });
 });
 
-// ===== Guardar saludo por idioma =====
 
-// ===== Obtener saludo por idioma =====
-let greetings = {};
-
-app.get('/greeting/:lang', (req, res) => {
-  const { lang } = req.params;
-
-  if (!greetings[lang]) {
-    return res.status(404).json({ error: "No greeting found" });
-  }
-
-  res.json({ audio: greetings[lang] });
-});
 
 app.post("/texts", upload.single("audio"), async (req, res) => {
   const { id, lang, content } = req.body;
@@ -157,7 +152,8 @@ app.delete('/texts/:id', async (req, res) => {
   }
 });
 
-app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
+// ===== Guardar saludo por idioma =====
+app.post('/greeting/:lang', upload.single('audio'), async (req, res) => {
   try {
     const { lang } = req.params;
 
@@ -165,9 +161,15 @@ app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
       return res.status(400).json({ error: "No audio uploaded" });
     }
 
-    greetings[lang] = req.file.path;
+    const audioUrl = req.file.path;
 
-    res.json({ success: true, audio: req.file.path });
+    await Greeting.findOneAndUpdate(
+      { lang },
+      { audio: audioUrl },
+      { upsert: true, returnDocument: "after" }
+    );
+
+    res.json({ success: true, audio: audioUrl });
 
   } catch (error) {
     console.error("Error saving greeting:", error);
@@ -175,6 +177,23 @@ app.post('/greeting/:lang', upload.single('audio'), (req, res) => {
   }
 });
 
+app.get('/greeting/:lang', async (req, res) => {
+  try {
+    const { lang } = req.params;
+
+    const greeting = await Greeting.findOne({ lang });
+
+    if (!greeting) {
+      return res.status(404).json({ error: "No greeting found" });
+    }
+
+    res.json({ audio: greeting.audio });
+
+  } catch (error) {
+    console.error("Error fetching greeting:", error);
+    res.status(500).json({ error: "Error fetching greeting" });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
