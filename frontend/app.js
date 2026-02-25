@@ -180,67 +180,59 @@ function highlightWords(editor, words) {
         false
     );
 
-    const textNodes = [];
-    while (walker.nextNode()) {
-        textNodes.push(walker.currentNode);
+    const nodes = [];
+    let currentNode;
+
+    while ((currentNode = walker.nextNode())) {
+        nodes.push(currentNode);
     }
 
-    textNodes.forEach(node => {
-        let currentText = node.nodeValue;
+    nodes.forEach(node => {
+
+        if (!node.parentNode) return;
+
+        let text = node.nodeValue;
+        let replaced = false;
 
         words.forEach(wordObj => {
             const word = wordObj.text.normalize("NFC");
             const safeWord = escapeRegExp(word);
             const regex = new RegExp(safeWord, "gu");
 
-            if (regex.test(currentText)) {
-                const fragment = document.createDocumentFragment();
-                let lastIndex = 0;
+            if (regex.test(text)) {
+                replaced = true;
 
-                currentText.replace(regex, (match, offset) => {
-
-                    // texto antes del match
-                    if (offset > lastIndex) {
-                        fragment.appendChild(
-                            document.createTextNode(
-                                currentText.slice(lastIndex, offset)
-                            )
-                        );
-                    }
-
-                    // crear span seguro
-                    const span = document.createElement("span");
-                    span.className = "highlight-word";
-                    span.contentEditable = "false";
-                    span.style.backgroundColor =
-                        wordObj.color || "#ffff00";
-                    span.dataset.word = JSON.stringify(wordObj);
-                    span.textContent = match;
-
-                    span.addEventListener("click", () => {
-                        showWordModal(wordObj);
-                    });
-
-                    fragment.appendChild(span);
-
-                    lastIndex = offset + match.length;
+                text = text.replace(regex, match => {
+                    return `<span class="highlight-word"
+                        contenteditable="false"
+                        data-word='${JSON.stringify(wordObj)}'
+                        style="background-color:${wordObj.color || "#ffff00"}">
+                        ${match}
+                    </span>`;
                 });
-
-                // texto después del último match
-                if (lastIndex < currentText.length) {
-                    fragment.appendChild(
-                        document.createTextNode(
-                            currentText.slice(lastIndex)
-                        )
-                    );
-                }
-
-                node.parentNode.replaceChild(fragment, node);
             }
+        });
+
+        if (replaced && node.parentNode) {
+            const temp = document.createElement("div");
+            temp.innerHTML = text;
+
+            while (temp.firstChild) {
+                node.parentNode.insertBefore(temp.firstChild, node);
+            }
+
+            node.parentNode.removeChild(node);
+        }
+    });
+
+    // volver a activar modal
+    editor.querySelectorAll(".highlight-word").forEach(span => {
+        span.addEventListener("click", () => {
+            const wordObj = JSON.parse(span.dataset.word);
+            showWordModal(wordObj);
         });
     });
 }
-
 
      // Agregar clases para que todos los botones tengan el mismo estilo
 saveBtn.classList.add("tab");
