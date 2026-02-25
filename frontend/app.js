@@ -37,7 +37,7 @@ function createEditorCube(lang, content = "", id = null, audio = null, words = [
     const editor = document.createElement("div");
     editor.classList.add("editor");
     editor.contentEditable = true;
-    editor.innerText = content;
+    editor.innerHTML = content;
     editor.innerHTML = editor.innerText;
 
 
@@ -137,7 +137,7 @@ editor.addEventListener("mouseup", () => {
         const formData = new FormData();
         formData.append("id", id || "");
         formData.append("lang", lang);
-        formData.append("content", editor.innerText);
+        formData.append("content", editor.innerHTML);
 
         const res = await fetch("/texts", {
             method: "POST",
