@@ -10,8 +10,6 @@ const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const Text = require("./models/Text");
 
-const mongoose = require("mongoose");
-
 const greetingSchema = new mongoose.Schema({
   lang: { type: String, required: true, unique: true },
   audio: { type: String, required: true }
