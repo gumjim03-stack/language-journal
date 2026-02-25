@@ -103,7 +103,7 @@ editor.addEventListener("mouseup", () => {
             const formData = new FormData();
             formData.append("id", id);
             formData.append("lang", lang);
-            formData.append("content", editor.innerHTML);
+            formData.append("content", editor.innerHTML.trim());
             formData.append("audio", audioBlob, `grabacion-${Date.now()}.webm`);
 
             const res = await fetch("/texts", {
