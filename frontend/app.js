@@ -39,6 +39,8 @@ function createEditorCube(lang, content = "", id = null, audio = null, words = [
     editor.contentEditable = true;
     editor.innerHTML = content;
 
+     highlightWords(editor, words);
+
 editor.addEventListener("mouseup", () => {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
@@ -238,8 +240,6 @@ function highlightWords(editor, words) {
         });
     });
 }
-
-    highlightWords(editor, words);
 
 
      // Agregar clases para que todos los botones tengan el mismo estilo
