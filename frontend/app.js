@@ -41,15 +41,35 @@ function createEditorCube(lang, content = "", id = null, audio = null, words = [
 
      highlightWords(editor, words);
 
-editor.addEventListener("mouseup", () => {
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
+function handleEditorSelection(eventType) {
 
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const selectedText = selection.toString().trim();
     if (!selectedText || !id) return;
-    if(selection.rangeCount == 0) return;
-    if(!selection.anchorNode || !selection.anchorNode.parentElement.closest(".editor-cube")) return;
+
+    // 🔥 Asegurarnos que la selección esté dentro de ESTE editor
+    const anchorNode = selection.anchorNode;
+    if (!anchorNode) return;
+
+    const cube = anchorNode.parentElement?.closest(".editor-cube");
+    if (!cube || cube !== wrapper) return;
 
     showAddWordModal(selectedText, id, editor);
+}
+
+// Desktop
+editor.addEventListener("mouseup", () => {
+    handleEditorSelection("mouse");
+});
+
+// Mobile
+editor.addEventListener("touchend", () => {
+    // Esperar un poquito para que la selección termine
+    setTimeout(() => {
+        handleEditorSelection("touch");
+    }, 50);
 });
 
     // ===== Botón guardar =====
