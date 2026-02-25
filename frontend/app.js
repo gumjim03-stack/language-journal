@@ -105,7 +105,7 @@ editor.addEventListener("mouseup", () => {
             const formData = new FormData();
             formData.append("id", id);
             formData.append("lang", lang);
-            formData.append("content", editor.innerText);
+            formData.append("content", editor.innerHTML);
             formData.append("audio", audioBlob, `grabacion-${Date.now()}.webm`);
 
             const res = await fetch("/texts", {
@@ -379,7 +379,7 @@ async function saveEditorCube(lang, editor, id) {
             body: JSON.stringify({
                 id: id,
                 lang: lang,
-                content: editor.innerText
+                content: editor.innerHTML
             })
         });
         await res.json();
