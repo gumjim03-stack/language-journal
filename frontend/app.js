@@ -180,57 +180,66 @@ function highlightWords(editor, words) {
         false
     );
 
-    const nodes = [];
-    let currentNode;
+    const textNodes = [];
+    let node;
 
-    while ((currentNode = walker.nextNode())) {
-        nodes.push(currentNode);
+    while ((node = walker.nextNode())) {
+        textNodes.push(node);
     }
 
-    nodes.forEach(node => {
+    textNodes.forEach(node => {
 
         if (!node.parentNode) return;
 
         let text = node.nodeValue;
-        let replaced = false;
+        let fragment = document.createDocumentFragment();
+        let cursor = 0;
+        let modified = false;
 
-        words.forEach(wordObj => {
-            const word = wordObj.text.normalize("NFC");
-            const safeWord = escapeRegExp(word);
-            const regex = new RegExp(safeWord, "gu");
+        while (cursor < text.length) {
 
-            if (regex.test(text)) {
-                replaced = true;
+            let matchFound = false;
 
-                text = text.replace(regex, match => {
-                    return `<span class="highlight-word"
-                        contenteditable="false"
-                        data-word='${JSON.stringify(wordObj)}'
-                        style="background-color:${wordObj.color || "#ffff00"}">
-                        ${match}
-                    </span>`;
-                });
+            for (let wordObj of words) {
+
+                const word = wordObj.text.normalize("NFC");
+                if (!word) continue;
+
+                if (text.slice(cursor, cursor + word.length) === word) {
+
+                    // texto antes del match ya agregado
+                    const span = document.createElement("span");
+                    span.className = "highlight-word";
+                    span.contentEditable = "false";
+                    span.style.backgroundColor =
+                        wordObj.color || "#ffff00";
+                    span.dataset.word = JSON.stringify(wordObj);
+                    span.textContent = word;
+
+                    span.addEventListener("click", () => {
+                        showWordModal(wordObj);
+                    });
+
+                    fragment.appendChild(span);
+
+                    cursor += word.length;
+                    matchFound = true;
+                    modified = true;
+                    break;
+                }
             }
-        });
 
-        if (replaced && node.parentNode) {
-            const temp = document.createElement("div");
-            temp.innerHTML = text;
-
-            while (temp.firstChild) {
-                node.parentNode.insertBefore(temp.firstChild, node);
+            if (!matchFound) {
+                fragment.appendChild(
+                    document.createTextNode(text[cursor])
+                );
+                cursor++;
             }
-
-            node.parentNode.removeChild(node);
         }
-    });
 
-    // volver a activar modal
-    editor.querySelectorAll(".highlight-word").forEach(span => {
-        span.addEventListener("click", () => {
-            const wordObj = JSON.parse(span.dataset.word);
-            showWordModal(wordObj);
-        });
+        if (modified && node.parentNode) {
+            node.parentNode.replaceChild(fragment, node);
+        }
     });
 }
 
