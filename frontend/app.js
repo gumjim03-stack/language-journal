@@ -713,3 +713,26 @@ greetingBtn.addEventListener("touchstart", (e) => {
 greetingBtn.addEventListener("touchend", () => {
     clearTimeout(touchTimer);
 });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const welcomeScreen = document.getElementById("welcome-screen");
+    const enterBtn = document.getElementById("enter-btn");
+
+    if (!localStorage.getItem("welcomeSeen")) {
+        welcomeScreen.style.display = "flex";
+    } else {
+        welcomeScreen.style.display = "none";
+    }
+
+    enterBtn.addEventListener("click", () => {
+        welcomeScreen.style.opacity = "0";
+        setTimeout(() => {
+            welcomeScreen.style.display = "none";
+        }, 800);
+
+        localStorage.setItem("welcomeSeen", "true");
+    });
+
+});
