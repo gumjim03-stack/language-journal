@@ -570,6 +570,8 @@ let clickTimeout;
 let greetingRecorder;
 let greetingChunks = [];
 let greetingAudio = new Audio();
+let touchTimer;
+let isLongPress = false;
 greetingAudio.addEventListener("ended", () => {
     greetingAudio.currentTime = 0;
 });
@@ -692,4 +694,22 @@ greetingBtn.addEventListener("dblclick", async () => {
             greetingRecorder.stop();
         }
     }, 10000);
+});
+
+// ===== Soporte mantener presionado en móvil =====
+greetingBtn.addEventListener("touchstart", (e) => {
+
+    isLongPress = false;
+
+    touchTimer = setTimeout(() => {
+        isLongPress = true;
+
+        // Simular doble click
+        greetingBtn.dispatchEvent(new Event("dblclick"));
+
+    }, 600); // tiempo de presión (600ms natural)
+});
+
+greetingBtn.addEventListener("touchend", () => {
+    clearTimeout(touchTimer);
 });
